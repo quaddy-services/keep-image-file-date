@@ -61,7 +61,30 @@
 				<artifactId>maven-site-plugin</artifactId>
 				<version>3.2</version>
 			</plugin>
-		</plugins>
+	        <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.quaddyservices.image.exif.KeepExifDate</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.dstovall</groupId>
+                <artifactId>onejar-maven-plugin</artifactId>
+                <version>1.4.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>one-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+    	</plugins>
 		<extensions>
 			<!-- Enabling the use of FTP -->
 			<extension>
@@ -71,4 +94,12 @@
 			</extension>
 		</extensions>
 	</build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>onejar-maven-plugin.googlecode.com</id>
+            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+        </pluginRepository>
+    </pluginRepositories>
+	
 </project>
