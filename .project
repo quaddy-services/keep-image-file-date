@@ -1,0 +1,13 @@
+<projectDescription>
+  <name>keep-image-file-date</name>
+  <comment>Keep the file timestamp as it is in the exif image information.</comment>
+  <projects/>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
