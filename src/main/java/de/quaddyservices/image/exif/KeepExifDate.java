@@ -12,7 +12,6 @@ import java.util.Date;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
@@ -47,7 +46,7 @@ public class KeepExifDate {
 						+ "-" + getShortName(tempNewName.substring(tempPos + 1));
 				File tempNewFile = new File(tempNewName);
 				if (tempNewFile.getName().equalsIgnoreCase(tempFile.getName())) {
-					System.out.println(tempFile.getName()+" is already correct name.");
+					System.out.println(tempFile.getName() + " is already correct name.");
 				} else {
 					if (tempNewFile.exists()) {
 						System.out.println("WARNING: Delete " + tempNewFile);
@@ -83,14 +82,19 @@ public class KeepExifDate {
 				tempCreationTime = aFile.lastModified();
 			} else {
 				Date tempDate = tempExifDirectory.getDate(ExifIFD0Directory.TAG_DATETIME);
-				tempCreationTime = tempDate.getTime();
+				if (tempDate == null) {
+					System.out.println("No Date in Exif of " + aFile.getName());
+					tempCreationTime = aFile.lastModified();
+				} else {
+					tempCreationTime = tempDate.getTime();
+				}
 			}
 		} catch (ImageProcessingException e) {
-			System.out.println("Ignore " + e);
+			System.out.println("Ignore " + aFile.getName() + ":" + e);
 			e.printStackTrace(System.out);
 			tempCreationTime = aFile.lastModified();
 		} catch (IOException e) {
-			System.out.println("Ignore " + e);
+			System.out.println("Ignore " + aFile.getName() + ":" + e);
 			e.printStackTrace(System.out);
 			tempCreationTime = aFile.lastModified();
 		}

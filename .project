@@ -1,6 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
   <name>keep-image-file-date</name>
-  <comment>Keep the file timestamp as it is in the exif image information.</comment>
+  <comment>Keep the file timestamp as it is in the exif image
+		information. NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
   <projects/>
   <buildSpec>
     <buildCommand>
