@@ -80,16 +80,13 @@ public class KeepExifDate {
 		long tempCreationTime;
 		try {
 			Metadata tempMetadata = ImageMetadataReader.readMetadata(aFile);
-			//			printInfo(tempMetadata);
+			//		printInfo(tempMetadata);
 			ExifSubIFDDirectory tempExifDirectory = tempMetadata.getDirectory(ExifSubIFDDirectory.class);
 			if (tempExifDirectory == null) {
 				System.out.println("No Exif information in " + aFile.getName());
 				tempCreationTime = aFile.lastModified();
 			} else {
-				Date tempDate = tempExifDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED);
-				if (tempDate == null) {
-					tempDate = tempExifDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-				}
+				Date tempDate = tempExifDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
 				if (tempDate == null) {
 					System.out.println("No Date in Exif of " + aFile.getName()
 							+ " ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED/.TAG_DATETIME_ORIGINAL");
