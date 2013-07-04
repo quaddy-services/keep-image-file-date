@@ -8,12 +8,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.Tag;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 /**
  * @author User
@@ -45,8 +48,9 @@ public class KeepExifDate {
 				tempNewName = tempNewName.substring(0, tempPos + 1) + dateTimeFormat.format(new Date(tempCreationTime))
 						+ "-" + getShortName(tempNewName.substring(tempPos + 1));
 				File tempNewFile = new File(tempNewName);
+				tempFile.setLastModified(tempCreationTime);
 				if (tempNewFile.getName().equalsIgnoreCase(tempFile.getName())) {
-					System.out.println(tempFile.getName() + " is already correct name.");
+					// System.out.println(tempFile.getName() + " is already correct name.");
 				} else {
 					if (tempNewFile.exists()) {
 						System.out.println("WARNING: Delete " + tempNewFile);
@@ -54,7 +58,7 @@ public class KeepExifDate {
 					}
 					System.out.println(tempFile.getName() + " -> " + tempNewFile.getName());
 					tempFile.renameTo(tempNewFile);
-					tempUndoList.append("ren " + tempNewFile.getName() + " " + tempFile.getName() + "\r\n");
+					tempUndoList.append("ren \"" + tempNewFile.getName() + "\" \"" + tempFile.getName() + "\"\r\n");
 				}
 			}
 		}
@@ -76,14 +80,19 @@ public class KeepExifDate {
 		long tempCreationTime;
 		try {
 			Metadata tempMetadata = ImageMetadataReader.readMetadata(aFile);
-			ExifIFD0Directory tempExifDirectory = tempMetadata.getDirectory(ExifIFD0Directory.class);
+			//			printInfo(tempMetadata);
+			ExifSubIFDDirectory tempExifDirectory = tempMetadata.getDirectory(ExifSubIFDDirectory.class);
 			if (tempExifDirectory == null) {
 				System.out.println("No Exif information in " + aFile.getName());
 				tempCreationTime = aFile.lastModified();
 			} else {
-				Date tempDate = tempExifDirectory.getDate(ExifIFD0Directory.TAG_DATETIME);
+				Date tempDate = tempExifDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED);
 				if (tempDate == null) {
-					System.out.println("No Date in Exif of " + aFile.getName());
+					tempDate = tempExifDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+				}
+				if (tempDate == null) {
+					System.out.println("No Date in Exif of " + aFile.getName()
+							+ " ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED/.TAG_DATETIME_ORIGINAL");
 					tempCreationTime = aFile.lastModified();
 				} else {
 					tempCreationTime = tempDate.getTime();
@@ -100,6 +109,20 @@ public class KeepExifDate {
 		}
 
 		return tempCreationTime;
+	}
+
+	private static void printInfo(Metadata aMetadata) {
+		Iterable<Directory> tempDirectories = aMetadata.getDirectories();
+		for (Directory tempDirectory : tempDirectories) {
+			Collection<Tag> tempTags = tempDirectory.getTags();
+			for (Tag tempTag : tempTags) {
+				Object tempObject = tempDirectory.getObject(tempTag.getTagType());
+				if (tempObject != null) {
+					System.out.println(tempDirectory + " " + tempTag + "=" + tempObject + " (" + tempObject.getClass()
+							+ ")");
+				}
+			}
+		}
 	}
 
 	private static boolean isMultimediaFile(File tempFile) {
