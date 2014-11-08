@@ -87,8 +87,8 @@ public class KeepExifDate {
 				tempCreationTime = aFile.lastModified();
 			} else {
 				Date tempDate = tempExifDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-				if (tempDate == null) {
-					System.out.println("No Date in Exif of " + aFile.getName()
+				if (tempDate == null || tempDate.getTime() < 1000) {
+					System.out.println("No Date or invalid in Exif of " + aFile.getName()
 							+ " ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED/.TAG_DATETIME_ORIGINAL");
 					tempCreationTime = aFile.lastModified();
 				} else {
