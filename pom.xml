@@ -9,7 +9,7 @@
 	<groupId>de.quaddyservices.image.exif</groupId>
 	<artifactId>keep-image-file-date</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>2017.10.29-1-SNAPSHOT</version>
 	<name>keep-image-file-date</name>
 	<description>Keep the file timestamp as it is in the exif image
 		information.
