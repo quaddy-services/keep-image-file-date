@@ -8,14 +8,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
+import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 /**
@@ -80,21 +84,33 @@ public class KeepExifDate {
 		long tempCreationTime;
 		try {
 			Metadata tempMetadata = ImageMetadataReader.readMetadata(aFile);
-			//		printInfo(tempMetadata);
-			ExifSubIFDDirectory tempExifDirectory = tempMetadata.getDirectory(ExifSubIFDDirectory.class);
-			if (tempExifDirectory == null) {
+			printInfo(tempMetadata);
+			List<Date> tempDates = new ArrayList<Date>();
+			tempDates.add(new Date(aFile.lastModified()));
+			ExifSubIFDDirectory tempExifSubIFDDirectory = tempMetadata.getDirectory(ExifSubIFDDirectory.class);
+			if (tempExifSubIFDDirectory == null) {
 				System.out.println("No Exif information in " + aFile.getName());
-				tempCreationTime = aFile.lastModified();
 			} else {
-				Date tempDate = tempExifDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-				if (tempDate == null || tempDate.getTime() < 1000) {
-					System.out.println("No Date or invalid in Exif of " + aFile.getName()
-							+ " ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED/.TAG_DATETIME_ORIGINAL");
-					tempCreationTime = aFile.lastModified();
-				} else {
-					tempCreationTime = tempDate.getTime();
+				Date tempDate = tempExifSubIFDDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+				if (tempDate != null && tempDate.getTime() > 1000) {
+					tempDates.add(new Date(tempDate.getTime()));
+				}
+				tempDate = tempExifSubIFDDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_DIGITIZED);
+				if (tempDate != null && tempDate.getTime() > 1000) {
+					tempDates.add(new Date(tempDate.getTime()));
 				}
 			}
+			ExifIFD0Directory tempExifIFD0Directory = tempMetadata.getDirectory(ExifIFD0Directory.class);
+			if (tempExifIFD0Directory == null) {
+				System.out.println("No tempExifIFD0Directory information in " + aFile.getName());
+			} else {
+				Date tempDate = tempExifIFD0Directory.getDate(ExifIFD0Directory.TAG_DATETIME);
+				if (tempDate != null && tempDate.getTime() > 1000) {
+					tempDates.add(new Date(tempDate.getTime()));
+				}
+			}
+			Collections.sort(tempDates);
+			tempCreationTime = tempDates.get(0).getTime();
 		} catch (ImageProcessingException e) {
 			System.out.println("Ignore " + aFile.getName() + ":" + e);
 			e.printStackTrace(System.out);
@@ -115,8 +131,8 @@ public class KeepExifDate {
 			for (Tag tempTag : tempTags) {
 				Object tempObject = tempDirectory.getObject(tempTag.getTagType());
 				if (tempObject != null) {
-					System.out.println(tempDirectory + " " + tempTag + "=" + tempObject + " (" + tempObject.getClass()
-							+ ")");
+					System.out.println(tempDirectory + " " + tempTag + " TagType=" + tempTag.getTagType() + "="
+							+ tempObject + " (" + tempObject.getClass() + ")");
 				}
 			}
 		}
