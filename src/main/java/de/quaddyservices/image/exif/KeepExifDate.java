@@ -38,12 +38,16 @@ public class KeepExifDate {
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws IOException, InterruptedException {
-
+		long tempNextInfoPrint = System.currentTimeMillis() + 5000;
 		File tempCurrentDir = new File(".");
 		StringBuilder tempUndoList = new StringBuilder();
 		System.out.println("Scan " + tempCurrentDir.getAbsolutePath() + "..");
 		File[] tempFiles = tempCurrentDir.listFiles();
 		for (int i = 0; i < tempFiles.length; i++) {
+			if (System.currentTimeMillis() > tempNextInfoPrint) {
+				System.out.println(new Date() + ": " + i + "/" + tempFiles.length);
+				tempNextInfoPrint = System.currentTimeMillis() + 5000;
+			}
 			File tempFile = tempFiles[i];
 			if (isMultimediaFile(tempFile)) {
 				String tempNewName = tempFile.getAbsolutePath().replace('\\', '/');
@@ -52,7 +56,12 @@ public class KeepExifDate {
 				tempNewName = tempNewName.substring(0, tempPos + 1) + dateTimeFormat.format(new Date(tempCreationTime))
 						+ "-" + getShortName(tempNewName.substring(tempPos + 1));
 				File tempNewFile = new File(tempNewName);
-				tempFile.setLastModified(tempCreationTime);
+				long tempLastModified = tempFile.lastModified();
+				if (tempLastModified != tempCreationTime) {
+					System.out.println(tempFile.getName() + " : " + new Date(tempLastModified) + " -> "
+							+ new Date(tempCreationTime));
+					tempFile.setLastModified(tempCreationTime);
+				}
 				if (tempNewFile.getName().equalsIgnoreCase(tempFile.getName())) {
 					// System.out.println(tempFile.getName() + " is already correct name.");
 				} else {
@@ -84,7 +93,7 @@ public class KeepExifDate {
 		long tempCreationTime;
 		try {
 			Metadata tempMetadata = ImageMetadataReader.readMetadata(aFile);
-			printInfo(tempMetadata);
+			// printInfo(tempMetadata);
 			List<Date> tempDates = new ArrayList<Date>();
 			tempDates.add(new Date(aFile.lastModified()));
 			ExifSubIFDDirectory tempExifSubIFDDirectory = tempMetadata.getDirectory(ExifSubIFDDirectory.class);
@@ -116,6 +125,10 @@ public class KeepExifDate {
 			e.printStackTrace(System.out);
 			tempCreationTime = aFile.lastModified();
 		} catch (IOException e) {
+			System.out.println("Ignore " + aFile.getName() + ":" + e);
+			e.printStackTrace(System.out);
+			tempCreationTime = aFile.lastModified();
+		} catch (NoClassDefFoundError e) {
 			System.out.println("Ignore " + aFile.getName() + ":" + e);
 			e.printStackTrace(System.out);
 			tempCreationTime = aFile.lastModified();
