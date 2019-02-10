@@ -6,6 +6,11 @@ package de.quaddyservices.image.exif;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -56,11 +61,24 @@ public class KeepExifDate {
 				tempNewName = tempNewName.substring(0, tempPos + 1) + dateTimeFormat.format(new Date(tempCreationTime))
 						+ "-" + getShortName(tempNewName.substring(tempPos + 1));
 				File tempNewFile = new File(tempNewName);
-				long tempLastModified = tempFile.lastModified();
-				if (tempLastModified != tempCreationTime) {
-					System.out.println(tempFile.getName() + " : " + new Date(tempLastModified) + " -> "
-							+ new Date(tempCreationTime));
-					tempFile.setLastModified(tempCreationTime);
+				BasicFileAttributeView attributes = Files.getFileAttributeView(Paths.get(tempFile.toURI()),
+						BasicFileAttributeView.class);
+				FileTime time = FileTime.fromMillis(tempCreationTime);
+				BasicFileAttributes tempAttributes = attributes.readAttributes();
+				FileTime tempCurrentLastModifiedTime = tempAttributes.lastModifiedTime();
+				FileTime tempCurrentCreationTime = tempAttributes.creationTime();
+				boolean tempSetTimes = false;
+				if (!time.equals(tempCurrentLastModifiedTime)) {
+					System.out.println(
+							tempFile.getName() + " LastModifiedTime: " + tempCurrentLastModifiedTime + " -> " + time);
+					tempSetTimes = true;
+				}
+				if (!time.equals(tempCurrentCreationTime)) {
+					System.out.println(tempFile.getName() + " CreationTim: " + tempCurrentCreationTime + " -> " + time);
+					tempSetTimes = true;
+				}
+				if (tempSetTimes) {
+					attributes.setTimes(time, null, time);
 				}
 				if (tempNewFile.getName().equalsIgnoreCase(tempFile.getName())) {
 					// System.out.println(tempFile.getName() + " is already correct name.");
@@ -94,8 +112,17 @@ public class KeepExifDate {
 		try {
 			Metadata tempMetadata = ImageMetadataReader.readMetadata(aFile);
 			// printInfo(tempMetadata);
+
 			List<Date> tempDates = new ArrayList<Date>();
-			tempDates.add(new Date(aFile.lastModified()));
+			BasicFileAttributeView attributes = Files.getFileAttributeView(Paths.get(aFile.toURI()),
+					BasicFileAttributeView.class);
+			BasicFileAttributes tempAttributes = attributes.readAttributes();
+			FileTime tempCurrentLastModifiedTime = tempAttributes.lastModifiedTime();
+			FileTime tempCurrentCreationTime = tempAttributes.creationTime();
+
+			tempDates.add(new Date(tempCurrentLastModifiedTime.toMillis()));
+			tempDates.add(new Date(tempCurrentCreationTime.toMillis()));
+
 			ExifSubIFDDirectory tempExifSubIFDDirectory = tempMetadata.getDirectory(ExifSubIFDDirectory.class);
 			if (tempExifSubIFDDirectory == null) {
 				System.out.println("No Exif information in " + aFile.getName());
