@@ -33,7 +33,7 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
  */
 public class KeepExifDate {
 	private static final String[] PATTERN = new String[] { "yyyyMMdd_HHmm", "yyyyMMdd-HHmm", "yyyy-MM-dd_HHmm",
-			"yyyy-MM-dd-HHmm", "yyyy-MM-dd", "yyyyMMdd" };
+			"yyyy-MM-dd-HHmm", "yyyy-MM-dd" };
 	private static final Format dateTimeFormat = new SimpleDateFormat(PATTERN[0]);
 	private static final Format[] dateTime = new Format[PATTERN.length];
 
@@ -192,16 +192,17 @@ public class KeepExifDate {
 	 */
 	private static String getShortName(String aName) {
 		String tempName = aName;
+		int tempLastDot = tempName.lastIndexOf('.');
 		for (int i = 0; i < dateTime.length; i++) {
-			String tempString = PATTERN[i];
+			String tempFormatString = PATTERN[i];
 			Format tempFormat = dateTime[i];
 			if (tempFormat == null) {
-				tempFormat = new SimpleDateFormat(tempString);
+				tempFormat = new SimpleDateFormat(tempFormatString);
 				dateTime[i] = tempFormat;
 			}
-			if (tempName.length() >= tempString.length()) {
+			if (tempLastDot > tempFormatString.length()) {
 				try {
-					String tempStart = tempName.substring(0, tempString.length());
+					String tempStart = tempName.substring(0, tempFormatString.length());
 					tempFormat.parseObject(tempStart);
 					String tempShort = tempName.substring(tempStart.length());
 					while (tempShort.startsWith("-")) {
